@@ -14,6 +14,7 @@ function EditorPage() {
 	const [clients, setClinet] = useState([]);
 
 	const socketRef = useRef(null);
+	const codeRef = useRef(null);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { roomId } = useParams();
@@ -41,22 +42,28 @@ function EditorPage() {
 					toast.success(`${username} joined`);
 				}
 				setClinet(clients);
+
+				socketRef.current.emit("sync-code", {
+					code: codeRef.current,
+					socketId,
+				});
 			});
 
 			// disconnected
 			socketRef.current.on("disconnected", ({ socketId, username }) => {
 				toast.success(`${username} left the room`);
 				setClinet((prev) => {
-					return prev.filter((client) => client.socketId !== socketId);                // filters out the client whose socketId matches the disconnected socket
+					return prev.filter((client) => client.socketId !== socketId); // filters out the client whose socketId matches the disconnected socket
 				});
 			});
 		};
 
 		init();
 
-		return () => {                                        // runs when the component unmounts. Component unmounts when the user leaves the editor page.
+		return () => {
+			// runs when the component unmounts. Component unmounts when the user leaves the editor page.
 			socketRef.current.disconnect();
-			socketRef.current.off("joined");                  // Prevents memory leaks
+			socketRef.current.off("joined"); // Prevents memory leaks
 			socketRef.current.off("disconnected");
 		};
 	}, []);
@@ -64,6 +71,19 @@ function EditorPage() {
 	if (!location.state) {
 		return <Navigate to={"/"} />;
 	}
+
+	const copyRoomId = async () => {
+		try {
+			await navigator.clipboard.writeText(roomId);
+			toast.success("Room ID copied to clipboard");
+		} catch (error) {
+			toast.error("Unable to copy roomId");
+		}
+	};
+
+	const leaveRoom = () => {
+		navigate("/");
+	};
 
 	return (
 		<div className="container-fluid vh-100">
@@ -90,15 +110,26 @@ function EditorPage() {
 					{/* Buttons */}
 					<div className="mt-auto">
 						<hr />
-						<button className="btn btn-success">Copy Room Id</button>
-						<button className="btn btn-danger mt-2 mb-2 px-3 btn-block">
+						<button onClick={copyRoomId} className="btn btn-success">
+							Copy Room Id
+						</button>
+						<button
+							onClick={leaveRoom}
+							className="btn btn-danger mt-2 mb-2 px-3 btn-block"
+						>
 							Leave Room
 						</button>
 					</div>
 				</div>
 				{/* Editor */}
 				<div className="col-md-10 text-light d-flex flex-column h-100 vh-100">
-					<Editor />
+					<Editor
+						socketRef={socketRef}
+						roomId={roomId}
+						onCodeChange={(code) => {
+							codeRef.current = code;
+						}}
+					/>
 				</div>
 			</div>
 		</div>
