@@ -120,12 +120,3 @@ socket.on("code-change", ({ roomId, code }) => {
 ✅ **Multiple File Support** – Enable users to collaborate on multiple files in a session.
 ✅ **Database Storage** – Store code history and allow reloading of previous versions.
 ✅ **Language Support** – Add support for Python, Java, C++, and more.
-
-## Contributing
-1. Fork the repo & create a new branch.
-2. Make your changes and push them.
-3. Submit a PR with a clear explanation.
-
-## Contact
-Feel free to connect via [GitHub](https://github.com/yourusername) or email at `your.email@example.com`. Happy coding! 🎉
-
